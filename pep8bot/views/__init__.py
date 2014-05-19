@@ -129,10 +129,32 @@ def webhook(request):
     return "OK"
 
 
+@view_config(context=m.Repo)
+def view_repo_button(request):
+    repo = request.context
+    url = '<img src="http://b.repl.ca/v1/pep8-{0}-{1}.png" />'
+    key = repo.commits[0].pep8_error_count
+    if not repo.commits[0].pep8_error_count:
+        color = 'lightgrey'
+    elif repo.commits[0].pep8_error_count <= 10:
+        color = 'brightgreen'
+    elif repo.commits[0].pep8_error_count <= 20:
+        color = 'green'
+    elif repo.commits[0].pep8_error_count <= 30:
+        color = 'yellowgreen'
+    elif repo.commits[0].pep8_error_count <= 40:
+        color = 'yellow'
+    elif repo.commits[0].pep8_error_count <= 50:
+        color = 'orange'
+    else:
+        color = 'red'
+
+    return url.format(key, color)
+
+
 @view_config(context=m.Commit, renderer='commit.mak')
 def view_commit(request):
     return dict(commit=request.context)
-
 
 @view_config(name='sync', context=m.User, renderer='json')
 def sync_user(request):
