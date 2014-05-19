@@ -177,7 +177,8 @@ class Repo(Base):
     description = Column(Unicode, nullable=False)
     language = Column(Unicode, nullable=False)
     username = Column(Unicode, ForeignKey('users.username'))
-    commits = relation('Commit', backref=('repo'))
+    commits = relation(
+        'Commit', backref=('repo'), order_by='Commit.created.desc()')
 
     #
     pep8_enabled = Column(Boolean, default=False)
