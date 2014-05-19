@@ -53,6 +53,7 @@ Using `virtualenvwrapper <pypi.python.org/pypi/virtualenvwrapper>`_::
   $ cd pep8bot
   $ mkvirtualenv pep8bot
   $ python setup.py develop
+  $ initialize_pep8bot_db development.ini
 
 Go off and `register your development application with github
 <https://github.com/settings/applications>`_.  Save the oauth tokens and add the
@@ -60,13 +61,19 @@ secret one to a new file you create called ``pep8bot/githubsecrets.py``::
 
     secret_oauth_token = "SECRET_STRING_GOES_HERE"
 
+If you do not have a redis daemon installed or working already you will need to
+install it and start it::
+
+  # yum install redis
+  # systemctl start redis
+
 Now, in two different terminals, start the webapp and the worker process.  In
 the first::
 
   $ workon pep8bot
-  $ pserve development.ini
+  $ pserve development.ini --reload
 
 In the second::
 
   $ workon pep8bot
-  $ python pep8bot/worker.py
+  $ python pep8bot/worker.py development.ini
