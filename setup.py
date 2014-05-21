@@ -17,6 +17,7 @@ requires = [
     'weberror',
     'velruse',
     'alembic',
+    'github3.py',  # To interact with github itself
 
     # Retask, for communication between webapp and the worker
     'retask',
