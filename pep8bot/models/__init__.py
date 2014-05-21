@@ -30,8 +30,10 @@ DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base(cls=JSONifiable)
 Base.query = DBSession.query_property()
 
-#from pygithub3 import Github
-#gh = Github()
+from pep8bot.githubsecrets import secret_oauth_token
+
+import github3
+gh = github3.login(token=secret_oauth_token)
 
 
 org_to_user_mapping = Table(
@@ -66,10 +68,14 @@ class User(Base):
         """ Ask github about what repos I have and cache that. """
         if self.users:
             # Then I am an organization, not a user.
-            gh_repos = gh.repos.list_by_org(self.username).all()
+            gh_repos = [
+                repo for repo in gh.organization(self.username).iter_repos()
+            ]
         else:
             # Then I am a real boy
-            gh_repos = gh.repos.list(self.username).all()
+            gh_repos = [
+                repo for repo in gh.iter_user_repos(self.username)
+            ]
 
         # TODO -- fix this.  this is inefficient
         for repo in gh_repos:
@@ -87,16 +93,17 @@ class User(Base):
         # Refresh my list of organizations.
         if not self.users:
             # Then I am a real User.
-            gh_orgs = gh.orgs.list(self.username).all()
-            for o in gh_orgs:
-                query = User.query.filter(User.username==o.login)
+            user = gh.user(self.username)
+            for org in user.iter_orgs():
+                org = org.refresh()
+                query = User.query.filter(User.username==org.login)
                 if query.count() < 1:
-                    log.debug("Adding new org %r" % o.login)
+                    log.debug("Adding new org %r" % org.login)
                     organization = User(
-                        username=o.login, full_name='', emails='')
+                        username=org.login, full_name='', emails='')
                     DBSession.add(organization)
                 else:
-                    log.debug("Found prexisting org %r" % o.login)
+                    log.debug("Found prexisting org %r" % org.login)
                     organization = query.one()
 
                 if self not in organization.users:
